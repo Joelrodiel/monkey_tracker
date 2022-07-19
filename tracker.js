@@ -18,7 +18,7 @@ function init() {
     generateNoteTable();
     noteMarks = $$(".noteMark td");
     document.getElementById('playBtn').onclick = playAction;
-    loadSample("assets/piano-cs3.wav");
+    loadSample("assets/piano-C4.wav");
 }
 
 const loadSample = (path) => {
@@ -52,18 +52,22 @@ function stepAction() {
     noteMarks[noteNum + 1].textContent = '↓';
     
     for (const n of noteCells[noteNum]) {
-        playNote(n.note);
+        playNote(n);
     }
 
     console.log("Step " + noteNum);
     noteNum++;
 }
 
-function playNote(sampleNote) {
+function playNote(n) {
     const source = audioCtx.createBufferSource();
     source.buffer = noteBuffer;
-    source.playbackRate.value = 2 ** ((sampleNote - 60) / 12);
-    source.connect(audioCtx.destination);
+    console.log(n);
+    source.playbackRate.value = 2 ** ((n.note - 60) / 12);
+    var gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(n.vol / 150, 0);
+    source.connect(gain);
+    gain.connect(audioCtx.destination);
     source.start(0);
 }
 
@@ -85,7 +89,8 @@ function onCheck(row, col) {
         }
     }
     if (!rm) {
-        noteCells[col].push({row: row, note: 81 - row, instrument: 1});
+        let noteVol = $('#noteVol').valueAsNumber;
+        noteCells[col].push({row: row, note: rowToNote[row], instrument: 1, vol: noteVol});
     }
     console.log(noteCells);
 }
