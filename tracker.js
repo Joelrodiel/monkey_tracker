@@ -1,18 +1,39 @@
+const $ = (x) => document.querySelector(x);
+const $$ = (x) => document.querySelectorAll(x);
+
 const CHANNELS = 13;
 const NOTE_NUMS = 10;
+
+const audioCtx = new AudioContext();
+var noteBuffer = [];
 
 var interVal;
 var noteNum = 0;
 var noteElem;
-var noteCellElem, oldNoteCellElem;
 var noteSpd = 500;
+var noteMarks;
+var noteCells = [];
 
 function init() {
     generateNoteTable();
+    noteMarks = $$(".noteMark td");
     document.getElementById('playBtn').onclick = playAction;
+    loadSample("assets/piano-cs3.wav");
+}
+
+const loadSample = (path) => {
+  const request = new XMLHttpRequest();
+  request.open("GET", path);
+  request.responseType = "arraybuffer";
+  request.onload = function() {
+    let undecodedAudio = request.response;
+    audioCtx.decodeAudioData(undecodedAudio, (data) => noteBuffer = data);
+  };
+  request.send();
 }
 
 function playAction() {
+    audioCtx.resume();
     noteNum = 0;
     noteElem = document.getElementById('ch1n0');
     noteCellElem = document.getElementById('ch1cll0');
@@ -20,65 +41,74 @@ function playAction() {
 }
 
 function stepAction() {
+    if (noteNum > 0) {
+        noteMarks[noteNum].textContent = '';
+    }
     if (noteNum >= NOTE_NUMS) {
         console.log("Cleared!");
-        oldNoteCellElem.style.background = 'white';
         clearInterval(interVal);
         return;
     }
-    noteCellElem.style.background = 'red';
-    if (noteNum > 0) {
-        oldNoteCellElem.style.background = 'white';
+    noteMarks[noteNum + 1].textContent = '↓';
+    
+    for (const n of noteCells[noteNum]) {
+        playNote(n.note);
     }
+
     console.log("Step " + noteNum);
-    if (noteElem && noteElem.checked) {
-        playNote();
-    }
     noteNum++;
-    noteElem = document.getElementById('ch1n' + noteNum);
-    oldNoteCellElem = noteCellElem;
-    noteCellElem = document.getElementById('ch1cll' + noteNum);
 }
 
-function playNote() {
-    const audioCtx = new AudioContext();
-    const note = new Audio("assets/note.wav");
-    const source  = audioCtx.createMediaElementSource(note);
+function playNote(sampleNote) {
+    const source = audioCtx.createBufferSource();
+    source.buffer = noteBuffer;
+    source.playbackRate.value = 2 ** ((sampleNote - 60) / 12);
     source.connect(audioCtx.destination);
-    note.play();
+    source.start(0);
 }
 
 function stopAction() {
     clearInterval(interVal)
-    if (noteNum < NOTE_NUMS) {
-        noteCellElem.style.background = 'white';
-    }
     if (noteNum > 0) {
-        oldNoteCellElem.style.background = 'white';
+        noteMarks[noteNum].textContent = '';
     }
 }
 
+function onCheck(row, col) {
+    // console.log("Row:", row, " & Col:", col, " check!");
+    let rm = false;
+    for (const [i, n] of noteCells[col].entries()) {
+        if (n.row == row) {
+            noteCells[col].splice(i, 1);
+            rm = true;
+            break;
+        }
+    }
+    if (!rm) {
+        noteCells[col].push({row: row, note: 81 - row, instrument: 1});
+    }
+    console.log(noteCells);
+}
+
 function generateNoteTable() {
-    var noteTable = document.getElementById("noteTable");
+    var noteRows = $$(".noteRow");
 
-    for (let i = 1; i <= CHANNELS; i++) {
-        let row = document.createElement("tr");
-        let cell = document.createElement("td");
-        let chnlTxt = document.createTextNode("CH" + i);
-        cell.appendChild(chnlTxt);
-        row.appendChild(cell);
-
+    for (const [i, row] of noteRows.entries()) {
         for (let j = 0; j < NOTE_NUMS; j++) {
             let noteCell = document.createElement("td");
-            noteCell.id = "ch" + i + "cll" + j;
             let noteChk = document.createElement("input");
             noteChk.type = "checkbox";
-            noteChk.id = "ch" + i + "n" + j;
+            noteChk.onchange = onCheck.bind(null, i, j);
             noteCell.appendChild(noteChk);
             row.appendChild(noteCell);
         }
+    }
 
-        noteTable.appendChild(row);
+    var noteMark = $(".noteMark");
+
+    for (let i = 0; i < NOTE_NUMS; i++) {
+        noteMark.appendChild(document.createElement("td"));
+        noteCells.push([]);
     }
 }
 
@@ -88,3 +118,7 @@ function onChangeNoteSpd() {
 }
 
 init();
+
+const rowToNote = [
+    69, 67, 65, 64, 62, 60, 59, 57, 55, 53, 52, 50, 48, 47
+]
