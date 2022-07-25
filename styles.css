@@ -1,0 +1,29 @@
+.horizontal-scroll-except-first-column {
+  width: 100%;
+  overflow: auto;
+}
+
+.horizontal-scroll-except-first-column > table {
+  margin-left: 21px;
+}
+
+.horizontal-scroll-except-first-column > table > * > tr > th:first-child,
+.horizontal-scroll-except-first-column > table > * > tr > td:first-child {
+  position: absolute;
+  background: white;
+  width: 22px;
+  margin-left: -25px;
+  text-align: center;
+}
+
+.horizontal-scroll-except-first-column > table > * > tr > th,
+.horizontal-scroll-except-first-column > table > * > tr > td {
+  /* Without this, if a cell wraps onto two lines, the first column
+   * will look bad, and may need padding. */
+  white-space: nowrap;
+}
+
+.noteMark > td {
+    text-align: center;
+    height: 20px;
+}

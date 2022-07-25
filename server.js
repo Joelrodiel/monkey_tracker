@@ -10,6 +10,6 @@ app.get('/', function(req, res) {
 });
 
 // app.listen(4200, '192.168.1.232', () => {
-app.listen(4200, '0.0.0.0', () => {
+app.listen(4200, () => {
 	console.info("Server started on port 4200");
 })

@@ -4,32 +4,38 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <title>Wah!</title>
+        <link rel="stylesheet" href="styles.css">
     </head>
 
     <body>
         <button id="playBtn">Play</button>
         <button id="stopBtn" onclick="stopAction()">Stop</button>
-        <input type="number" id="noteSpd" placeholder="Note speed" value="500" onchange="onChangeNoteSpd()">
-        <table id="noteTable">
-            <tr class="noteMark" style="text-align: center;"><td>#</td></tr>
-            <tr class="noteRow"><td class="noteLabel">A</td></tr>
-            <tr class="noteRow"><td class="noteLabel">G</td></tr>
-            <tr class="noteRow"><td class="noteLabel">F</td></tr>
-            <tr class="noteRow"><td class="noteLabel">E</td></tr>
-            <tr class="noteRow"><td class="noteLabel">D</td></tr>
-            <tr class="noteRow"><td class="noteLabel">C</td></tr>
-            <tr class="noteRow"><td class="noteLabel">B</td></tr>
-            <tr class="noteRow"><td class="noteLabel">A</td></tr>
-            <tr class="noteRow"><td class="noteLabel">G</td></tr>
-            <tr class="noteRow"><td class="noteLabel">F</td></tr>
-            <tr class="noteRow"><td class="noteLabel">E</td></tr>
-            <tr class="noteRow"><td class="noteLabel">D</td></tr>
-            <tr class="noteRow"><td class="noteLabel">C</td></tr>
-            <tr class="noteRow"><td class="noteLabel">B</td></tr>
-        </table>
+        <label>BPM:</label><input type="number" id="noteSpd" placeholder="BPM" value="120" max="1015" min="1" onchange="onChangeNoteSpd()">
+        <!-- <label>Cells:</label><input type="number" id="cellNum" placeholder="Cells" value="20" onchange="onChangeCellNum()"> -->
+        <div class="horizontal-scroll-except-first-column">
+            <table id="noteTable">
+                <tr class="noteMark"><td>#</td></tr>
+                <tr class="noteRow"><td class="noteLabel">A</td></tr>
+                <tr class="noteRow"><td class="noteLabel">G</td></tr>
+                <tr class="noteRow"><td class="noteLabel">F</td></tr>
+                <tr class="noteRow"><td class="noteLabel">E</td></tr>
+                <tr class="noteRow"><td class="noteLabel">D</td></tr>
+                <tr class="noteRow"><td class="noteLabel">C</td></tr>
+                <tr class="noteRow"><td class="noteLabel">B</td></tr>
+                <tr class="noteRow"><td class="noteLabel">A</td></tr>
+                <tr class="noteRow"><td class="noteLabel">G</td></tr>
+                <tr class="noteRow"><td class="noteLabel">F</td></tr>
+                <tr class="noteRow"><td class="noteLabel">E</td></tr>
+                <tr class="noteRow"><td class="noteLabel">D</td></tr>
+                <tr class="noteRow"><td class="noteLabel">C</td></tr>
+                <tr class="noteRow"><td class="noteLabel">B</td></tr>
+            </table>
+        </div>
         <script src="tracker.js"></script>
         <label>Note Vol:</label>
         <input type="range" id="noteVol" min="0" max="100" step="10" value="100" oninput="this.nextElementSibling.value = this.value + '%'">
         <output>100%</output>
+        <br/><br/>
+        <button id="clearCells" onclick="clearNotes()">Clear</button>
     </body>
 </html>

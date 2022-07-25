@@ -1,8 +1,7 @@
 const $ = (x) => document.querySelector(x);
 const $$ = (x) => document.querySelectorAll(x);
 
-const CHANNELS = 13;
-const NOTE_NUMS = 10;
+var noteCellNum = 30;
 
 const audioCtx = new AudioContext();
 var noteBuffer = [];
@@ -44,7 +43,7 @@ function stepAction() {
     if (noteNum > 0) {
         noteMarks[noteNum].textContent = '';
     }
-    if (noteNum >= NOTE_NUMS) {
+    if (noteNum >= noteCellNum) {
         console.log("Cleared!");
         clearInterval(interVal);
         return;
@@ -80,15 +79,9 @@ function stopAction() {
 
 function onCheck(row, col) {
     // console.log("Row:", row, " & Col:", col, " check!");
-    let rm = false;
-    for (const [i, n] of noteCells[col].entries()) {
-        if (n.row == row) {
-            noteCells[col].splice(i, 1);
-            rm = true;
-            break;
-        }
-    }
-    if (!rm) {
+    if ($(`#n${row}\\,${col}`).checked) {
+        noteCells[col].splice(i, 1);
+    } else {
         let noteVol = $('#noteVol').valueAsNumber;
         noteCells[col].push({row: row, note: rowToNote[row], instrument: 1, vol: noteVol});
     }
@@ -99,10 +92,11 @@ function generateNoteTable() {
     var noteRows = $$(".noteRow");
 
     for (const [i, row] of noteRows.entries()) {
-        for (let j = 0; j < NOTE_NUMS; j++) {
+        for (let j = 0; j < noteCellNum; j++) {
             let noteCell = document.createElement("td");
             let noteChk = document.createElement("input");
             noteChk.type = "checkbox";
+            noteChk.id = `n${i},${j}`;
             noteChk.onchange = onCheck.bind(null, i, j);
             noteCell.appendChild(noteChk);
             row.appendChild(noteCell);
@@ -114,6 +108,16 @@ function generateNoteTable() {
     for (let i = 0; i < NOTE_NUMS; i++) {
         noteMark.appendChild(document.createElement("td"));
         noteCells.push([]);
+    }
+}
+
+function clearNotes() {
+    for (const [i, col] of noteCells.entries()) {
+        for (const n of col) {
+            let chk = $(`#n${n.row}\\,${i}`);
+            chk.checked = false;
+        }
+        noteCells[i].length = 0;
     }
 }
 
