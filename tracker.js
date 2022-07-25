@@ -79,9 +79,14 @@ function stopAction() {
 
 function onCheck(row, col) {
     // console.log("Row:", row, " & Col:", col, " check!");
-    if ($(`#n${row}\\,${col}`).checked) {
-        noteCells[col].splice(i, 1);
-    } else {
+    let rm = false;
+    for (const [i, n] of noteCells[col].entries()) {
+        if (n.row == row) {
+            noteCells[col].splice(i, 1);
+            rm = true;
+        }
+    }
+    if (!rm) {
         let noteVol = $('#noteVol').valueAsNumber;
         noteCells[col].push({row: row, note: rowToNote[row], instrument: 1, vol: noteVol});
     }
@@ -105,7 +110,7 @@ function generateNoteTable() {
 
     var noteMark = $(".noteMark");
 
-    for (let i = 0; i < NOTE_NUMS; i++) {
+    for (let i = 0; i < noteCellNum; i++) {
         noteMark.appendChild(document.createElement("td"));
         noteCells.push([]);
     }
