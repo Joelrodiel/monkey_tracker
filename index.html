@@ -36,6 +36,9 @@
         <input type="range" id="noteVol" min="0" max="100" step="10" value="100" oninput="this.nextElementSibling.value = this.value + '%'">
         <output>100%</output>
         <br/><br/>
+        <button id="saveSong" onclick="saveSong()">Save</button>
+        <input type="file" id="loadSongInput" style='display:none;'>
+        <button id="loadSongBtn" onclick="loadSongAction()">Load</button>
         <button id="clearCells" onclick="clearNotes()">Clear</button>
     </body>
 </html>
