@@ -137,19 +137,19 @@ function onChangeNoteSpd() {
         num = 1;
         document.getElementById("noteSpd").valueAsNumber = num;
     }
-    noteSpd = 60000 / num;
+    noteSpd = BPM_MILL / num;
     console.log("Note spd is now " + noteSpd);
 }
 
-// TODO: Save song metadata (spd, etc...)
 function saveSong() {
-    let out = '';
+    let out = `MNKY${noteCellNum},${noteSpd}`;
     for (const [i, col] of noteCells.entries()) {
         for (const n of col) {
-            out += `${i},${n.row},${n.note},${n.instrument},${n.vol}\n`;
+            out += `\nn${i},${n.row},${n.note},${n.instrument},${n.vol}`;
         }
     }
     console.log(out);
+
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(out));
     element.setAttribute('download', 'song.txt');
@@ -172,13 +172,25 @@ function loadSongAction() {
 
 async function loadSong(file) {
     const contents = await file.text();
+
+    // Check file signature
+    if (!/^(MNKY)/g.test(contents)) {
+        alert("Not a valid song file!");
+        return;
+    }
+
     clearNotes();
-    const lines = contents.matchAll(/^(\d+),(\d+),(\d+),(\d+),(\d+)$/gm);
+
+    const meta = Array.from(contents.matchAll(/^MNKY(\d+),(\d+)$/gm))[0];
+    // noteCellNum = parseInt(meta[1]);
+    noteSpd = parseInt(meta[2]);
+    document.getElementById("noteSpd").valueAsNumber = BPM_MILL / noteSpd;
+
+    const lines = contents.matchAll(/^n(\d+),(\d+),(\d+),(\d+),(\d+)$/gm);
     for (const n of lines) {
         noteCells[n[1]].push({row: parseInt(n[2]), note: parseInt(n[3]), instrument: parseInt(n[4]), vol: parseInt(n[5])});
         $(`#n${parseInt(n[2])}\\,${parseInt(n[1])}`).checked = true;
     }
-    console.log(noteCells);
 }
 
 init();
@@ -186,3 +198,5 @@ init();
 const rowToNote = [
     69, 67, 65, 64, 62, 60, 59, 57, 55, 53, 52, 50, 48, 47
 ]
+
+const BPM_MILL = 60000;
