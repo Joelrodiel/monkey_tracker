@@ -14,6 +14,7 @@ var noteElem;
 var noteSpd = 500;
 var noteMarks;
 var noteCells = [];
+var looping = false;
 
 function init() {
     generateNoteTable();
@@ -46,9 +47,12 @@ function stepAction() {
         noteMarks[noteNum].textContent = '';
     }
     if (noteNum >= noteCellNum) {
-        console.log("Cleared!");
-        clearInterval(interVal);
-        return;
+        if (!looping) {
+            console.log("Cleared!");
+            clearInterval(interVal);
+            return;
+        }
+        noteNum = 0;
     }
     noteMarks[noteNum + 1].textContent = '↓';
     
@@ -142,7 +146,7 @@ function onChangeNoteSpd() {
 }
 
 function saveSong() {
-    let out = `MNKY${noteCellNum},${noteSpd}`;
+    let out = `MNKY${noteCellNum},${noteSpd},${looping ? 1 : 0}`;
     for (const [i, col] of noteCells.entries()) {
         for (const n of col) {
             out += `\nn${i},${n.row},${n.note},${n.instrument},${n.vol}`;
@@ -181,15 +185,29 @@ async function loadSong(file) {
 
     clearNotes();
 
-    const meta = Array.from(contents.matchAll(/^MNKY(\d+),(\d+)$/gm))[0];
+    const meta = Array.from(contents.matchAll(/^MNKY(\d+),(\d+),(\d+)$/gm))[0];
     // noteCellNum = parseInt(meta[1]);
     noteSpd = parseInt(meta[2]);
     document.getElementById("noteSpd").valueAsNumber = BPM_MILL / noteSpd;
+    if (parseInt(meta[3]) != looping) {
+        toggleLoop();
+    }
 
     const lines = contents.matchAll(/^n(\d+),(\d+),(\d+),(\d+),(\d+)$/gm);
     for (const n of lines) {
         noteCells[n[1]].push({row: parseInt(n[2]), note: parseInt(n[3]), instrument: parseInt(n[4]), vol: parseInt(n[5])});
         $(`#n${parseInt(n[2])}\\,${parseInt(n[1])}`).checked = true;
+    }
+}
+
+function toggleLoop() {
+    const loopBtn = $("#loopBtn");
+    if (looping) {
+        looping = false;
+        loopBtn.innerText = 'Looping: off';
+    } else {
+        looping = true;
+        loopBtn.innerText = 'Looping: on';
     }
 }
 
