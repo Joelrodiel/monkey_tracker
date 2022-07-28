@@ -62,7 +62,7 @@ function stepAction() {
         let note = n.note;
         for (const [effect, val] of Object.entries(n.effects)) {
             if (effect === "acc") {
-                val > 1 ? note-- : note += val;
+                val > 1 ? note-- : note++;
             }
         }
         playNote(note, n.vol);
@@ -93,32 +93,50 @@ function stopAction() {
 function onCheck(row, col) {
     // console.log("Row:", row, " & Col:", col, " check!");
     let rm = false;
+    let rmEffs = {};
     for (const [i, n] of noteCells[col].entries()) {
         if (n.row == row) {
+            rmEffs = n.effects;
             noteCells[col].splice(i, 1);
             rm = true;
         }
     }
     if (!rm) {
         let noteVol = $('#noteVol').valueAsNumber;
-        let note = {row: row, note: rowToNote[row], instrument: 1, vol: noteVol, effects: {}};
-
+        let noteNum = rowToNote[row];
+        let effects = {};
         if (accidentMode > 0) {
-            const pp = document.createElement("p");
-            pp.innerHTML = accidentMode == 1 ? "&#9839;" : "&#9837;";
-            pp.id = `acc${row},${col}`;
-            pp.classList.add("accidental");
-            pp.style = `margin-left: 17px; margin-top: -${accidentMode == 1 ? 30 : 32}px;`;
-            document.querySelector(`#n${row}\\,${col}`).parentElement.appendChild(pp);
-        
-            note.effects.acc = accidentMode;
+            effects.acc = accidentMode;
         }
 
-        noteCells[col].push(note);
+        spawnNote(row, col, noteNum, 1, noteVol, effects, false);
     } else {
-        $(`#acc${row}\\,${col}`).remove();
+        removeNote(row, col, rmEffs, true);
     }
     console.log(noteCells);
+}
+
+function spawnNote(row, col, noteNum, inst, vol, effs, chk = true) {
+    let note = {row: row, note: noteNum, instrument: inst, vol: vol, effects: effs};
+    let noteElem = $(`#n${row}\\,${col}`);
+
+    for (const [key, val] of Object.entries(effs)) {
+        if (key === "acc" && val > 0) {
+            const pp = document.createElement("p");
+            pp.innerHTML = val == 1 ? "&#9839;" : "&#9837;";
+            pp.id = `acc${row},${col}`;
+            pp.classList.add("accidental");
+            pp.classList.add(`accidental${val}`);
+            noteElem.parentElement.appendChild(pp);
+        }
+    }
+    // console.log(note);
+
+    noteCells[col].push(note);
+
+    if (chk) {
+        noteElem.checked = true;
+    }
 }
 
 function generateNoteTable() {
@@ -148,15 +166,22 @@ function generateNoteTable() {
 function clearNotes() {
     for (const [i, col] of noteCells.entries()) {
         for (const n of col) {
-            let chk = $(`#n${n.row}\\,${i}`);
-            chk.checked = false;
-            for (const [effect, val] of Object.entries(n.effects)) {
-                if (effect === "acc") {
-                    $(`#acc${n.row}\\,${i}`).remove();
-                }
-            }
+            removeNote(n.row, i, n.effects);
         }
         noteCells[i].length = 0;
+    }
+}
+
+function removeNote(row, col, effs, unchk = true) {
+    if (unchk) {
+        let chk = $(`#n${row}\\,${col}`);
+        chk.checked = false;
+    }
+
+    for (const [effect, val] of Object.entries(effs)) {
+        if (effect === "acc") {
+            $(`#acc${row}\\,${col}`).remove();
+        }
     }
 }
 
@@ -178,13 +203,16 @@ function saveSong() {
     for (const [i, col] of noteCells.entries()) {
         for (const n of col) {
             out += `\nn${i},${n.row},${n.note},${n.instrument},${n.vol}`;
+            for (const [effect, val] of Object.entries(n.effects)) {
+                out += `,(${effectIndex[effect]},${val})`;
+            }
         }
     }
     console.log(out);
 
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(out));
-    element.setAttribute('download', 'song.txt');
+    element.setAttribute('download', 'song.mnky');
 
     element.style.display = 'none';
     document.body.appendChild(element);
@@ -221,10 +249,18 @@ async function loadSong(file) {
         toggleLoop();
     }
 
-    const lines = contents.matchAll(/^n(\d+),(\d+),(\d+),(\d+),(\d+)$/gm);
+    const lines = contents.matchAll(/^n(\d+),(\d+),(\d+),(\d+),(\d+)((?:,\(\d+,\d+\))*)$/gm);
     for (const n of lines) {
-        noteCells[n[1]].push({row: parseInt(n[2]), note: parseInt(n[3]), instrument: parseInt(n[4]), vol: parseInt(n[5]), effects: {}});
-        $(`#n${parseInt(n[2])}\\,${parseInt(n[1])}`).checked = true;
+        let effects = {};
+        if (n[6] !== "") {
+            const parseEffs = n[6].matchAll(/(?:,\((\d+),(\d+)\))/gm);
+            for (const e of parseEffs) {
+                effects[Object.keys(effectIndex).find(key => effectIndex[key] === parseInt(e[1]))] = parseInt(e[2]);
+            }
+        }
+        console.log(effects);
+
+        spawnNote(parseInt(n[2]), parseInt(n[1]), parseInt(n[3]), parseInt(n[4]), parseInt(n[5]), effects);
     }
 }
 
@@ -250,3 +286,7 @@ const rowToNote = [
 ]
 
 const BPM_MILL = 60000;
+
+const effectIndex = {
+    "acc": 0,
+}
