@@ -7,13 +7,14 @@
   margin-left: 21px;
 }
 
-.horizontal-scroll-except-first-column > table > * > tr > th:first-child,
 .horizontal-scroll-except-first-column > table > * > tr > td:first-child {
   position: absolute;
   background: white;
   width: 22px;
+  height: 30px;
   margin-left: -25px;
   text-align: center;
+  z-index: 5;
 }
 
 .horizontal-scroll-except-first-column > table > * > tr > th,
@@ -24,10 +25,20 @@
 }
 
 .noteMark > td {
-    text-align: center;
-    height: 20px;
+  text-align: center;
+  height: 20px;
 }
 
 input[type=number] {
   width: 45px;
+}
+
+.noteSettingBox {
+  display: inline-block;
+  margin-right: 50px;
+}
+
+.accidental {
+  margin: 0;
+  position: absolute; 
 }

@@ -15,12 +15,14 @@ var noteSpd = 500;
 var noteMarks;
 var noteCells = [];
 var looping = false;
+var accidentMode = 0;
 
 function init() {
     generateNoteTable();
     noteMarks = $$(".noteMark td");
     document.getElementById('playBtn').onclick = playAction;
     loadSample("assets/piano-C4.wav");
+    $("#acclNatural").checked = true;
 }
 
 const loadSample = (path) => {
@@ -57,20 +59,25 @@ function stepAction() {
     noteMarks[noteNum + 1].textContent = '↓';
     
     for (const n of noteCells[noteNum]) {
-        playNote(n);
+        let note = n.note;
+        for (const [effect, val] of Object.entries(n.effects)) {
+            if (effect === "acc") {
+                val > 1 ? note-- : note += val;
+            }
+        }
+        playNote(note, n.vol);
     }
 
     console.log("Step " + noteNum);
     noteNum++;
 }
 
-function playNote(n) {
+function playNote(note, vol) {
     const source = audioCtx.createBufferSource();
     source.buffer = noteBuffer;
-    console.log(n);
-    source.playbackRate.value = 2 ** ((n.note - 60) / 12);
+    source.playbackRate.value = 2 ** ((note - 60) / 12);
     var gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(n.vol / 150, 0);
+    gain.gain.setValueAtTime(vol / 150, 0);
     source.connect(gain);
     gain.connect(audioCtx.destination);
     source.start(0);
@@ -94,7 +101,22 @@ function onCheck(row, col) {
     }
     if (!rm) {
         let noteVol = $('#noteVol').valueAsNumber;
-        noteCells[col].push({row: row, note: rowToNote[row], instrument: 1, vol: noteVol});
+        let note = {row: row, note: rowToNote[row], instrument: 1, vol: noteVol, effects: {}};
+
+        if (accidentMode > 0) {
+            const pp = document.createElement("p");
+            pp.innerHTML = accidentMode == 1 ? "&#9839;" : "&#9837;";
+            pp.id = `acc${row},${col}`;
+            pp.classList.add("accidental");
+            pp.style = `margin-left: 17px; margin-top: -${accidentMode == 1 ? 30 : 32}px;`;
+            document.querySelector(`#n${row}\\,${col}`).parentElement.appendChild(pp);
+        
+            note.effects.acc = accidentMode;
+        }
+
+        noteCells[col].push(note);
+    } else {
+        $(`#acc${row}\\,${col}`).remove();
     }
     console.log(noteCells);
 }
@@ -105,6 +127,7 @@ function generateNoteTable() {
     for (const [i, row] of noteRows.entries()) {
         for (let j = 0; j < noteCellNum; j++) {
             let noteCell = document.createElement("td");
+            noteCell.style = "position: relative;";
             let noteChk = document.createElement("input");
             noteChk.type = "checkbox";
             noteChk.id = `n${i},${j}`;
@@ -195,7 +218,7 @@ async function loadSong(file) {
 
     const lines = contents.matchAll(/^n(\d+),(\d+),(\d+),(\d+),(\d+)$/gm);
     for (const n of lines) {
-        noteCells[n[1]].push({row: parseInt(n[2]), note: parseInt(n[3]), instrument: parseInt(n[4]), vol: parseInt(n[5])});
+        noteCells[n[1]].push({row: parseInt(n[2]), note: parseInt(n[3]), instrument: parseInt(n[4]), vol: parseInt(n[5]), effects: {}});
         $(`#n${parseInt(n[2])}\\,${parseInt(n[1])}`).checked = true;
     }
 }
@@ -209,6 +232,10 @@ function toggleLoop() {
         looping = true;
         loopBtn.innerText = 'Looping: on';
     }
+}
+
+function onNoteTypeChange(type) {
+    accidentMode = parseInt(type);
 }
 
 init();
