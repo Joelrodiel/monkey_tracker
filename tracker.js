@@ -150,6 +150,11 @@ function clearNotes() {
         for (const n of col) {
             let chk = $(`#n${n.row}\\,${i}`);
             chk.checked = false;
+            for (const [effect, val] of Object.entries(n.effects)) {
+                if (effect === "acc") {
+                    $(`#acc${n.row}\\,${i}`).remove();
+                }
+            }
         }
         noteCells[i].length = 0;
     }
