@@ -8,11 +8,22 @@
     </head>
 
     <body>
-        <button id="playBtn">Play</button>
-        <button id="stopBtn" onclick="stopAction()">Stop</button>
-        <label>BPM:</label><input type="number" id="noteSpd" placeholder="BPM" value="120" max="1015" min="1" onchange="onChangeNoteSpd()">
-        <button id="loopBtn" onclick="toggleLoop()">Looping: off</button>
+        <div class="songSettingBox">
+            <button id="playBtn">Play</button>
+            <button id="stopBtn" onclick="stopAction()">Stop</button>
+        </div>
+        <div class="songSettingBox">
+            <label for="noteSpd">BPM:</label><input type="number" id="noteSpd" placeholder="BPM" value="120" max="1015" min="1" onchange="onChangeNoteSpd()">
+        </div>
+        <div class="songSettingBox">
+            <button id="loopBtn" onclick="toggleLoop()">Looping: off</button>
+        </div>
+        <div class="songSettingBox">
+            <label for="statusText">Status:</label>
+            <input type="text" id="statusText" readonly value="Welcome to Monkey Tracker!" disabled/>
+        </div>
         <!-- <label>Cells:</label><input type="number" id="cellNum" placeholder="Cells" value="20" onchange="onChangeCellNum()"> -->
+
         <div class="horizontal-scroll-except-first-column">
             <table id="noteTable">
                 <tr class="noteMark"><td>#</td></tr>
@@ -34,7 +45,7 @@
         </div>
         <div>
             <div class="noteSettingBox">
-                <label>Note Vol:</label>
+                <label for="noteVol">Note Vol:</label>
                 <input type="range" id="noteVol" min="0" max="100" step="10" value="100" oninput="this.nextElementSibling.value = this.value + '%'">
                 <output>100%</output>
             </div>
@@ -48,7 +59,7 @@
                 <label for="accidentalFlat">&#9837;</label>
             </div>
             <div class="noteSettingBox">
-                <label>Instrument:</label>
+                <label for="instrumentSelect">Instrument:</label>
                 <select id="instrumentSelect" onchange="onSelectInstr(this.value)">
                 </select>
             </div>
@@ -58,8 +69,10 @@
         <input type="file" id="loadSongInput" style='display:none;'>
         <button id="loadSongBtn" onclick="loadSongAction()">Load Song</button>
         <button id="clearCells" onclick="clearNotes()">Clear Notes</button>
+        <br/><br/>
         <input type="file" id="loadInstrInput" style='display:none;'>
         <button id="loadInstr" onclick="loadInstrAction()">Load Instrument</button>
+        <!-- <button id="removeInstr" onclick="removeInstrument()" disabled>Delete Instrument</button> -->
 
         <script src="tracker.js"></script>
     </body>
