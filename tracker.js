@@ -4,9 +4,9 @@ const $$ = (x) => document.querySelectorAll(x);
 var noteCellNum = 32;
 
 const audioCtx = new AudioContext();
-var noteBuffer = [];
 
-const lineRegex = new RegExp();
+var instruments = [];
+var selectedInstr = 0;
 
 var interVal;
 var noteNum = 0;
@@ -21,17 +21,24 @@ function init() {
     generateNoteTable();
     noteMarks = $$(".noteMark td");
     document.getElementById('playBtn').onclick = playAction;
-    loadSample("assets/piano-C4.wav");
+    loadSample("assets/piano-C4.wav", "Casio Piano");
     $("#acclNatural").checked = true;
 }
 
-const loadSample = (path) => {
+const loadSample = (path, name) => {
   const request = new XMLHttpRequest();
   request.open("GET", path);
   request.responseType = "arraybuffer";
   request.onload = function() {
     let undecodedAudio = request.response;
-    audioCtx.decodeAudioData(undecodedAudio, (data) => noteBuffer = data);
+    audioCtx.decodeAudioData(undecodedAudio, (data) => {
+        let instOption = document.createElement("option");
+        instOption.value = instruments.length;
+        instOption.innerText = name;
+        $("#instrumentSelect").appendChild(instOption);
+
+        instruments.push({name: name, dataBuff: data});
+    });
   };
   request.send();
 }
@@ -65,16 +72,17 @@ function stepAction() {
                 val > 1 ? note-- : note++;
             }
         }
-        playNote(note, n.vol);
+        playNote(note, n.instrument, n.vol);
     }
 
     console.log("Step " + noteNum);
     noteNum++;
 }
 
-function playNote(note, vol) {
+function playNote(note, instrument, vol) {
     const source = audioCtx.createBufferSource();
-    source.buffer = noteBuffer;
+    // source.buffer = noteBuffer;
+    source.buffer = instruments[instrument].dataBuff;
     source.playbackRate.value = 2 ** ((note - 60) / 12);
     var gain = audioCtx.createGain();
     gain.gain.setValueAtTime(vol / 150, 0);
@@ -109,7 +117,7 @@ function onCheck(row, col) {
             effects.acc = accidentMode;
         }
 
-        spawnNote(row, col, noteNum, 1, noteVol, effects, false);
+        spawnNote(row, col, noteNum, selectedInstr, noteVol, effects, false);
     } else {
         removeNote(row, col, rmEffs, true);
     }
@@ -242,7 +250,7 @@ async function loadSong(file) {
     clearNotes();
 
     const meta = Array.from(contents.matchAll(/^MNKY(\d+),(\d+),(\d+)$/gm))[0];
-    // noteCellNum = parseInt(meta[1]);
+    // noteCellNum = parseInt(meta[1]); // TODO: Dynamic Resize Grid
     noteSpd = parseInt(meta[2]);
     document.getElementById("noteSpd").valueAsNumber = BPM_MILL / noteSpd;
     if (parseInt(meta[3]) != looping) {
@@ -277,6 +285,33 @@ function toggleLoop() {
 
 function onNoteTypeChange(type) {
     accidentMode = parseInt(type);
+}
+
+function onSelectInstr(value) {
+    selectedInstr = value;
+}
+
+function loadInstrAction() {
+    const fileInput = $("#loadInstrInput");
+    fileInput.click();
+    fileInput.onchange = () => {
+        loadInstrument(fileInput.files[0]);
+    }
+}
+
+function loadInstrument(file) {
+    let reader = new FileReader();
+    reader.onload = (e) => {
+        audioCtx.decodeAudioData(e.target.result, (data) => {
+            let instOption = document.createElement("option");
+            instOption.value = instruments.length;
+            instOption.innerText = file.name;
+            $("#instrumentSelect").appendChild(instOption);
+
+            instruments.push({name: name, dataBuff: data});
+        });
+    }
+    reader.readAsArrayBuffer(file);
 }
 
 init();

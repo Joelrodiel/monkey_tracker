@@ -47,12 +47,19 @@
                 <input type="radio" id="acclFlat" name="accidentals" value="2" onchange="onNoteTypeChange(this.value)">
                 <label for="accidentalFlat">&#9837;</label>
             </div>
+            <div class="noteSettingBox">
+                <label>Instrument:</label>
+                <select id="instrumentSelect" onchange="onSelectInstr(this.value)">
+                </select>
+            </div>
         </div>
-        <br/><br/>
-        <button id="saveSong" onclick="saveSong()">Save</button>
+        <br/>
+        <button id="saveSong" onclick="saveSong()">Save Song</button>
         <input type="file" id="loadSongInput" style='display:none;'>
-        <button id="loadSongBtn" onclick="loadSongAction()">Load</button>
-        <button id="clearCells" onclick="clearNotes()">Clear</button>
+        <button id="loadSongBtn" onclick="loadSongAction()">Load Song</button>
+        <button id="clearCells" onclick="clearNotes()">Clear Notes</button>
+        <input type="file" id="loadInstrInput" style='display:none;'>
+        <button id="loadInstr" onclick="loadInstrAction()">Load Instrument</button>
 
         <script src="tracker.js"></script>
     </body>
